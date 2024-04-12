@@ -15,7 +15,14 @@ const generateFileName = () => {
     return `${Math.random().toString(36).substring(2)}_${y}${m}${d}`
 }
 
+const transformTimestamp = (str) => {
+    const [minutes, seconds] = str.split(':')
+
+    return Number(minutes) * 60 + Number(seconds) 
+}
+
 module.exports = {
     getCurrentDate,
-    generateFileName
+    generateFileName,
+    transformTimestamp
 }

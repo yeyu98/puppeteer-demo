@@ -7,7 +7,7 @@ const PASSWORD_INPUT = "#exampleInputPassword1"
 const LOGIN = ".login_container .btn"
 
 const puppeteer = require('puppeteer')
-const path = require('path')
+const { transformTimestamp } = require('../utils/index')
 
 
 // TODO 1 
@@ -29,9 +29,13 @@ const path = require('path')
 
 const autoPlay = async() => {
     // NOTE 发现个很神奇的事情，在node中try和catch是两个不同的作用域
-    const browser = await puppeteer.launch()
+    const browser = await puppeteer.launch({headless: false})
     try {
         const page = await browser.newPage()
+        await page.setViewport({
+            width: 1920,
+            height: 1000
+        })
         await page.goto(TARGET_URL)
         await page.type(ID_INPUT, ID)
         await page.type(PASSWORD_INPUT, PASSWORD)
@@ -40,10 +44,10 @@ const autoPlay = async() => {
             waitUntil: 'load'
         })
         // 进入课程中心
-        await page.click('a[ui-sref=courseCenter]')
-        await page.waitForNavigation({
-            waitUntil: 'load'
-        })
+        // await page.click('a[ui-sref=courseCenter]')
+        // await page.waitForNavigation({
+        //     waitUntil: 'load'
+        // })
         // 进入个人中心
         await page.click('a[ui-sref=personalCenter]')
         await page.waitForNavigation({
@@ -51,7 +55,8 @@ const autoPlay = async() => {
         })
         // .tab-panel > .list:nth(5) > .list0-75
         // 查找指定播放项
-        const playList = await page.$$('.tab-panel > .list')
+        const playList = await page.$$('.tab-panel .list')
+        console.log(playList.length)
         await playList[5].click('.list0-75')
         await page.waitForNavigation({
             waitUntil: 'load'
@@ -59,21 +64,31 @@ const autoPlay = async() => {
 
         // 拖动滑块
         const dragWrapperWidth = await page.$eval('.drag_text', el => el.clientWidth)
-        const dragHandlerWidth = await page.$eval('.handler', el => el.clientWidth)
-        const dragMovePosition = dragWrapperWidth - dragHandlerWidth;
-        console.log('dragMovePosition --->>>', dragMovePosition)
-        const dragHandler = await page.$('.handler')
-        // dragHandler.m
+        const slider = await page.$('.handler')
+        const handle = await slider.boundingBox()
+        await page.mouse.move(handle.x, handle.y + slider.height / 2)
+        await page.mouse.down()
+        await page.mouse.move(handle.x + dragWrapperWidth, handle.y + slider.height / 2)
+        await page.mouse.up()
+
+        // 获取时长
+        const totalTimeText = await page.$eval('.myplayer_controlbar_duration', el => el.innerHTML)
+        const elapsedTimeText = await page.$eval('.myplayer_controlbar_elapsed', el => el.innerHTML)
+
+        const totalVideoTime =  transformTimestamp(totalTimeText) + 10
+        const elapsedVideoTime =  transformTimestamp(elapsedTimeText) + 10
+
+        const waitTime = totalVideoTime - elapsedVideoTime
+
+        console.log(waitTime)
+        await page.waitForTimeout(waitTime * 1000)
+
+        await page.close()
 
 
 
 
-
-        // await page.screenshot({
-        //     path: '../files/snap.png',
-        //     fullPage: true
-        // })
-        await browser.close()
+        // await browser.close()
     }catch(err) {
         console.log("err --->>>", err)
         await browser.close()
