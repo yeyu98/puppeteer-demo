@@ -1,5 +1,5 @@
 {
-  "name": "puppenter",
+  "name": "puppeteer-demo",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -10,6 +10,9 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.27.2",
-    "puppeteer": "^18.0.5"
+    "puppeteer": "^18.0.5",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-adblocker": "^2.13.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
   }
 }
