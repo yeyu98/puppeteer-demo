@@ -2,7 +2,7 @@
  * @Author: lzy-Jerry
  * @Date: 2022-10-03 19:15:59
  * @LastEditors: yeyu98
- * @LastEditTime: 2024-04-12 21:26:43
+ * @LastEditTime: 2024-07-11 22:41:10
  * @Description: 
  */
 // const autoPlay = require('./puppeteer/autoPlay')
@@ -11,6 +11,9 @@
 // const mouseMove = require('./puppeteer/mouseMove')
 // mouseMove()
 
-const extractPicture = require('./puppeteer/extractPicture')
+// const extractPicture = require('./puppeteer/extractPicture')
 
-extractPicture()
+// extractPicture()
+
+const {autoPlay} = require('./autoPlay')
+autoPlay()
