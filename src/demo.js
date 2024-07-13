@@ -2,7 +2,7 @@
  * @Author: yeyu98
  * @Date: 2024-07-11 22:34:55
  * @LastEditors: yeyu98
- * @LastEditTime: 2024-07-13 17:51:41
+ * @LastEditTime: 2024-07-13 22:25:28
  * @Description: 
  */
 
@@ -16,12 +16,7 @@ puppeteer.use(AdblokcerPlugin({
     blockTrackers: true
 }))
 
-// 如何获取当前页面打开的新页面的page？
-// 方式一
-// 通过browser.once监听targetcreated事件，当新页面打开时返回当前页
-// 方案二 通过browser.pages 根据索引来获取
-
-const TARGET_URL = 'http://www.netbian.com/'
+const TARGET_URL = 'https://music.163.com/#'
 
 const getNewPage = (browser) => new Promise(resolve => browser.once("targetcreated", target => resolve(target.page())))
 
@@ -34,17 +29,13 @@ const main = async () => {
             height: 1000
         })
         await page.goto(TARGET_URL)
-        const list = await page.$$('.menu li')
-        await list[3].click()
-        const newPage = await getNewPage(browser)
-        await newPage.waitForSelector('.classify')
-        const items = await newPage.evaluate(() => {
-            const items = document.querySelectorAll('.classify a')
-            return items.length
-            // return items?.map(item => item.innerText)
+        const frame = await page.waitForFrame(frame => {
+            return frame.name() === 'contentFrame'
         })
-        // const items = await newPage.$$eval('.classify a', items => items.map(item => item.innerText))
-        console.log("✨✨🥰  ~ items ~ items--->>>", items)
+        // const frame = await page.frames().find(frame => frame.name() === 'contentFrame')
+        const list = await frame.$eval('#g_backtop', el => el.innerText)
+        console.log("✨✨🥰  ~ main ~ list--->>>", list)
+
     }catch(err) {
         console.log("err --->>>", err)
         await browser.close()

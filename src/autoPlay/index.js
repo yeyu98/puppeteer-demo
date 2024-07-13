@@ -2,7 +2,7 @@
  * @Author: yeyu98
  * @Date: 2024-07-11 22:34:55
  * @LastEditors: yeyu98
- * @LastEditTime: 2024-07-13 20:19:59
+ * @LastEditTime: 2024-07-13 21:22:15
  * @Description: 
  */
 
@@ -34,6 +34,9 @@ const getTotalSeconds = async (coursePage) => {
 const startStudyCourse = (browser) => {
     return new Promise(async (resolve, reject) => {
         const coursePage = await getNewPage(browser)
+        await categoryPage.waitForNavigation({
+            waitUntil: 'domcontentloaded'
+        })
         await coursePage.waitForSelector('.fullScreenContainer')
         const courseName = await coursePage.$eval('.prev_title', el => el.innerText)
         // video_html5_api 开始播放
@@ -50,9 +53,9 @@ const startStudyCourse = (browser) => {
                 await coursePage.waitForSelector('.tkTopic')
                 console.log(`开始互动答题`)
                 await coursePage.$eval('.tkItem_ul li', items => items[0].click())
-                await sleep()
+                await sleep(1500)
                 await coursePage.$eval('#videoquiz-submit', el => el.click())
-                await sleep()
+                await sleep(1500)
                 await coursePage.$eval('#videoquiz-continue', el => el.click())
                 console.log(`课程：${courseName} 继续播放`)
             })
@@ -80,6 +83,9 @@ const startStudyCourse = (browser) => {
 const enterCategoryPage = async (browser) => {
     let count = 0
     const categoryPage = await getNewPage(browser)
+    await categoryPage.waitForNavigation({
+        waitUntil: 'domcontentloaded'
+    })
     // 等待章节列表出现
     await categoryPage.waitForSelector('.catalog_level')
     const categoryList = await categoryPage.$$('.catalog_level li')
@@ -115,28 +121,29 @@ const autoPlay = async () => {
         await page.waitForNavigation({
             waitUntil: 'load'
         })
+        await sleep()
 
         // 点击进入培训点
-        await page.evaluate(() => {
-            const trainingPointBtn = document.querySelectorAll('.menubar  a')[1]
-            trainingPointBtn.click()
-        })
-        
-        // 等待课程入口出现
-        await page.waitForSelector('.l_tcourse_item')
-        await page.evaluate(() => {
-            const courseEntry = document.querySelectorAll('.l_tcourse_item  li')[0]
-            courseEntry.click()
-        })
+        // await page.evaluate(() => {
+        //     const trainingPointBtn = document.querySelectorAll('.menubar  a')[1]
+        //     trainingPointBtn.click()
+        // })
+
+        page.$$eval('.menubar  a', items => items[1].click())
+        await sleep()
         
 
         // 等待进入课程学习按钮
-        await page.waitForSelector('.l_tcourse_btn')
-        await page.evaluate(() => {
-            const studyEntry = document.querySelectorAll('.l_tcourse_btn')[1]
-            studyEntry.click()
+        await page.waitForSelector('.l_ib_crow', {
+            timeout: 60000
         })
+        await page.$eval('.l_tcourse_list', el => el.click())
 
+
+        
+        await page.waitForNavigation({
+            waitUntil: 'domcontentloaded'
+        })
         // 获取分页数量
         const pageNumber = await page.$$eval('.pageDiv li', pages => pages.length - 2)
 
