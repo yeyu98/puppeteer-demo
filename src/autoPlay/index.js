@@ -2,7 +2,7 @@
  * @Author: yeyu98
  * @Date: 2024-07-11 22:34:55
  * @LastEditors: yeyu98
- * @LastEditTime: 2024-07-13 21:22:15
+ * @LastEditTime: 2024-07-13 22:55:42
  * @Description: 
  */
 
@@ -14,11 +14,11 @@ const {sleep, getNewPage, convertSeconds} = require('./utils')
 const OPERATION_TIME = 3000
 
 
-const getTotalSeconds = async (coursePage) => {
+const getTotalSeconds = async (courseFrame) => {
     return new Promise(async (resolve, reject) => {
-        await coursePage.waitForSelector('.vjs-duration-display')
-        const currentTimeStr = await coursePage.$eval('.vjs-current-time-display', el => el.innerText)
-        const totalTimeStr = await coursePage.$eval('.vjs-duration-display', el => el.innerText)
+        await courseFrame.waitForSelector('.vjs-duration-display')
+        const currentTimeStr = await courseFrame.$eval('.vjs-current-time-display', el => el.innerText)
+        const totalTimeStr = await courseFrame.$eval('.vjs-duration-display', el => el.innerText)
         const currentTimeList = currentTimeStr?.split(':')
         const totalTimeList = totalTimeStr?.split(':')
         const currentSeconds = convertSeconds(currentTimeList)
@@ -34,13 +34,12 @@ const getTotalSeconds = async (coursePage) => {
 const startStudyCourse = (browser) => {
     return new Promise(async (resolve, reject) => {
         const coursePage = await getNewPage(browser)
-        await categoryPage.waitForNavigation({
-            waitUntil: 'domcontentloaded'
-        })
-        await coursePage.waitForSelector('.fullScreenContainer')
-        const courseName = await coursePage.$eval('.prev_title', el => el.innerText)
+        await sleep(2000)
+        const courseFrame = await coursePage.frames()[0]
+        await courseFrame.waitForSelector('.fullScreenContainer')
+        const courseName = await courseFrame.$eval('.prev_title', el => el.innerText)
         // video_html5_api 开始播放
-        await coursePage.$eval('#video_html5_api', el => {
+        await courseFrame.$eval('#video_html5_api', el => {
             el.play();
             console.log(`课程：${courseName} 开始播放`)
             el.addEventListener("paused", async function() {     
@@ -50,17 +49,17 @@ const startStudyCourse = (browser) => {
                 // #videoquiz-submit click
                 // waitFor #videoquiz-continue  click
                 console.log(`课程：${courseName} 暂停播放`)
-                await coursePage.waitForSelector('.tkTopic')
+                await courseFrame.waitForSelector('.tkTopic')
                 console.log(`开始互动答题`)
-                await coursePage.$eval('.tkItem_ul li', items => items[0].click())
+                await courseFrame.$eval('.tkItem_ul li', items => items[0].click())
                 await sleep(1500)
-                await coursePage.$eval('#videoquiz-submit', el => el.click())
+                await courseFrame.$eval('#videoquiz-submit', el => el.click())
                 await sleep(1500)
-                await coursePage.$eval('#videoquiz-continue', el => el.click())
+                await courseFrame.$eval('#videoquiz-continue', el => el.click())
                 console.log(`课程：${courseName} 继续播放`)
             })
         })
-        const totalTimes = await getTotalSeconds(coursePage)
+        const totalTimes = await getTotalSeconds(courseFrame)
 
         console.log(`✨✨🥰 视频一共${seconds / 1000} 秒`)
         
@@ -83,12 +82,10 @@ const startStudyCourse = (browser) => {
 const enterCategoryPage = async (browser) => {
     let count = 0
     const categoryPage = await getNewPage(browser)
-    await categoryPage.waitForNavigation({
-        waitUntil: 'domcontentloaded'
-    })
+    const categoryFrame = await categoryPage.waitForFrame(f => f.name() === 'frame_content-zj')
     // 等待章节列表出现
-    await categoryPage.waitForSelector('.catalog_level')
-    const categoryList = await categoryPage.$$('.catalog_level li')
+    await categoryFrame.waitForSelector('.catalog_level')
+    const categoryList = await categoryFrame.$$('.catalog_level li')
     if(categoryList.length > 0) {
         for(let i=0; i<categoryList.length; i++) {
             const item = categoryList[i]
@@ -133,23 +130,19 @@ const autoPlay = async () => {
         await sleep()
         
 
-        // 等待进入课程学习按钮
-        await page.waitForSelector('.l_ib_crow', {
-            timeout: 60000
-        })
-        await page.$eval('.l_tcourse_list', el => el.click())
+        // 进入班级列表
+        const classFrame = await page.waitForFrame(f => f.name() === 'frame_content')
+        await classFrame.waitForSelector('.l_ib_crow')
+        await classFrame.$eval('.l_tcourse_list', el => el.click())
 
 
-        
-        await page.waitForNavigation({
-            waitUntil: 'domcontentloaded'
-        })
+        // 进入课程列表
+        const courseFrame = await page.waitForFrame(f => f.name() === 'frame_content')
         // 获取分页数量
-        const pageNumber = await page.$$eval('.pageDiv li', pages => pages.length - 2)
-
+        const pageNumber = await courseFrame.$$eval('.pageDiv li', pages => pages.length - 2)
         // 开始学习
         for(let i = 0; i < pageNumber; i++) { 
-            await page.evaluate(async () => {
+            await courseFrame.evaluate(async () => {
                 const courseList = document.querySelectorAll('.l_ib_crow .l_tcourse_list')
                 const _courseList = [...courseList]
                 if(_courseList.length > 0) {
