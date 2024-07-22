@@ -2,7 +2,7 @@
  * @Author: yeyu98
  * @Date: 2024-07-13 17:18:09
  * @LastEditors: yeyu98
- * @LastEditTime: 2024-07-21 11:30:57
+ * @LastEditTime: 2024-07-22 21:09:34
  * @Description: 
 -->
 - 如何获取当前页面打开的新页面的page？
@@ -22,3 +22,5 @@
     - 之后将所有chrome都关闭，启动设置过后的浏览器，访问http://127.0.0.1:9222/json/version；
     - 获取到"webSocketDebuggerUrl": "ws://127.0.0.1:9222/devtools/browser/c9ecd2e4-4133-4700-853d-7c74f3f8f559"
   - 第二 通过puppeteer提供的 puppeteer.connect 使用ws连接上9222端口下的浏览器，替代每次都需要启动关闭的puppeteer浏览器；
+
+- 在iframe中一个页面跳转另一个页面但并不发生界面刷新导致puppeteer还停留在上一个iframe的内容中？
