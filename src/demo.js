@@ -2,7 +2,7 @@
  * @Author: yeyu98
  * @Date: 2024-07-11 22:34:55
  * @LastEditors: yeyu98
- * @LastEditTime: 2024-07-13 22:25:28
+ * @LastEditTime: 2024-07-14 11:49:30
  * @Description: 
  */
 
@@ -33,8 +33,31 @@ const main = async () => {
             return frame.name() === 'contentFrame'
         })
         // const frame = await page.frames().find(frame => frame.name() === 'contentFrame')
-        const list = await frame.$eval('#g_backtop', el => el.innerText)
-        console.log("✨✨🥰  ~ main ~ list--->>>", list)
+
+        
+        // const list = await frame.$eval('#g_backtop', el => el.innerText)
+        // console.log("✨✨🥰  ~ main ~ list--->>>", list)
+        const a = await frame.evaluate(() => {
+            const _list = document.querySelectorAll('.m-cvrlst.f-cb li')
+            const list = [..._list]
+            console.log("✨✨🥰  ~ a ~ list--->>>", list.length)
+            // const result = [...list].map(item => {
+            //     const a = item.querySelector('a')
+            //     console.log(a)
+            //     return a.title
+            // })
+            const result = []
+            for(let i = 0; i < list.length; i++) {
+                const item = list[i]
+                const a = item.querySelector('a')
+                result.push(a.title)
+                if(i == 1) {
+                    a.click()
+                }
+            }
+            // return result
+        })
+        console.log("✨✨🥰  ~ a ~ a--->>>", a)
 
     }catch(err) {
         console.log("err --->>>", err)
